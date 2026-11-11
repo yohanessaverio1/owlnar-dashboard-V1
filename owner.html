@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#05060d">
+<title>Owlnar Owner Dashboard v2.6 · Lyric Sync</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👑</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Orbitron:wght@500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#07090f;--bg2:#0a0d17;--card:#111420;--card2:#171a2b;--card-hover:#1c2033;
+  --text:#f0f4ff;--dim:#8b95b0;--muted:#5a6478;
+  --gold:#D4AF37;--gold-l:#FFE9A8;
+  --accent:#8b5cf6;--accent2:#ec4899;--accent-glow:rgba(139,92,246,.4);
+  --success:#10d981;--danger:#ef4444;--warn:#f59e0b;--info:#3b82f6;
+  --border:rgba(255,255,255,.06);--border2:rgba(255,255,255,.12);
+  --inp:rgba(255,255,255,.03);
+  --shadow:0 10px 40px rgba(0,0,0,.6);
+  --sidebar-w:260px;
+  --r:12px;--r2:18px;
+}
+body.light{
+  --bg:#f8fafc;--bg2:#fff;--card:#fff;--card2:#f1f5f9;--card-hover:#e2e8f0;
+  --text:#0f172a;--dim:#475569;--muted:#94a3b8;
+  --border:rgba(0,0,0,.08);--border2:rgba(0,0,0,.15);
+  --inp:rgba(0,0,0,.03);--shadow:0 10px 40px rgba(0,0,0,.05);
+}
+*{font-family:'Inter',-apple-system,sans-serif}
+h1,h2,h3,h4{font-family:'Orbitron',sans-serif;letter-spacing:.3px}
+body{background:var(--bg);color:var(--text);min-height:100vh;line-height:1.5;font-size:14px;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+.hide{display:none!important}
+.shell{display:flex;min-height:100vh}
+.sidebar{background:var(--card);border-right:1px solid var(--border);padding:1rem .8rem;display:flex;flex-direction:column;position:fixed;left:0;top:0;bottom:0;width:var(--sidebar-w);overflow-y:auto;z-index:100;transition:.3s}
+.sidebar::-webkit-scrollbar{width:4px}
+.sidebar::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+.main-wrap{flex:1;margin-left:var(--sidebar-w);display:flex;flex-direction:column;min-width:0}
+.main{flex:1;padding:1.5rem 2rem 3rem;width:100%;max-width:1600px;margin:0 auto}
+.sb-brand{display:flex;align-items:center;gap:.7rem;padding:.5rem .5rem 1.2rem;border-bottom:1px solid var(--border);margin-bottom:.8rem}
+.sb-brand .logo{font-size:2rem;filter:drop-shadow(0 0 15px rgba(212,175,55,.4))}
+.sb-brand h1{font-size:.95rem;font-weight:900;color:#fff;font-family:'Orbitron';line-height:1.1}
+body.light .sb-brand h1{color:#000}
+.sb-brand small{font-size:.55rem;color:var(--gold);letter-spacing:2px;font-weight:800;display:block;margin-top:2px}
+.nav-group{font-size:.6rem;color:var(--muted);font-weight:800;letter-spacing:1px;padding:.8rem .6rem .3rem}
+.nav-item{display:flex;align-items:center;gap:.7rem;padding:.65rem .8rem;border-radius:10px;color:var(--dim);cursor:pointer;font-weight:600;font-size:.78rem;transition:.15s;border:none;background:none;width:100%;text-align:left;font-family:inherit;position:relative}
+.nav-item:hover{background:var(--inp);color:var(--text)}
+.nav-item.on{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 4px 15px var(--accent-glow)}
+.nav-item i{width:18px;text-align:center;font-size:.85rem}
+.nav-item .badge{background:var(--danger);color:#fff;font-size:.55rem;font-weight:800;padding:1px 6px;border-radius:8px;margin-left:auto}
+.topbar{position:sticky;top:0;z-index:90;background:color-mix(in srgb,var(--bg) 85%,transparent);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-bottom:1px solid var(--border);padding:.8rem 2rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap}
+.topbar-left{display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
+.page-title h2{font-size:1.1rem;font-weight:800;color:var(--text)}
+.page-title p{font-size:.68rem;color:var(--dim);font-weight:500;margin-top:2px}
+.topbar-right{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap}
+.action-bar{display:flex;gap:.4rem;align-items:center;flex-wrap:wrap}
+.action-btn{background:var(--card);border:1px solid var(--border);color:var(--text);padding:.5rem .85rem;border-radius:9px;font-size:.72rem;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:.4rem;transition:.15s;white-space:nowrap}
+.action-btn:hover{background:var(--card-hover);transform:translateY(-1px)}
+.action-btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border-color:transparent;box-shadow:0 4px 15px var(--accent-glow)}
+.action-btn.success{background:linear-gradient(135deg,#10d981,#059669);color:#fff;border-color:transparent}
+.action-btn.danger{background:linear-gradient(135deg,#ef4444,#b91c1c);color:#fff;border-color:transparent}
+.action-btn.warn{background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;border-color:transparent}
+.top-search{position:relative}
+.top-search input{background:var(--card);border:1px solid var(--border);color:var(--text);padding:.5rem .85rem .5rem 2.2rem;border-radius:9px;font-size:.75rem;width:220px;font-family:inherit;outline:none;transition:.2s}
+.top-search input:focus{width:280px;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+.top-search i{position:absolute;left:.7rem;top:50%;transform:translateY(-50%);color:var(--dim);font-size:.75rem;pointer-events:none}
+.top-search .kbd{position:absolute;right:.5rem;top:50%;transform:translateY(-50%);background:var(--border);color:var(--dim);font-size:.55rem;padding:2px 5px;border-radius:4px;font-family:'JetBrains Mono',monospace}
+.icon-btn{background:var(--card);border:1px solid var(--border);color:var(--text);width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.85rem;transition:.15s;position:relative}
+.icon-btn:hover{background:var(--card-hover)}
+.icon-btn .dot{position:absolute;top:8px;right:8px;width:7px;height:7px;background:var(--danger);border-radius:50%;border:2px solid var(--card)}
+.user-pill{display:flex;align-items:center;gap:.6rem;background:var(--card);padding:.3rem .8rem .3rem .3rem;border-radius:24px;border:1px solid var(--border);cursor:pointer;transition:.15s}
+.user-pill:hover{background:var(--card-hover)}
+.user-pill .av{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;font-size:.8rem}
+.user-pill b{font-size:.72rem;display:block;line-height:1.1}
+.user-pill small{font-size:.55rem;color:var(--gold);font-weight:700}
+.live{display:inline-flex;align-items:center;gap:.35rem;background:rgba(16,217,129,.1);color:var(--success);padding:4px 10px;border-radius:10px;font-size:.6rem;font-weight:800;border:1px solid rgba(16,217,129,.2)}
+.live::before{content:'';width:6px;height:6px;background:var(--success);border-radius:50%;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:1.4rem;transition:.2s}
+.card-h{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.2rem;flex-wrap:wrap;gap:1rem}
+.card-h h3{font-size:.95rem;font-weight:800;display:flex;align-items:center;gap:.5rem}
+.card-h h3 i{color:var(--accent)}
+.card-h p{font-size:.7rem;color:var(--dim);margin-top:.2rem}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-bottom:1.2rem}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem;margin-bottom:1.2rem}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:1.5rem}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:1.2rem;position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--accent),transparent);opacity:0.5}
+.stat-card.g::before{background:linear-gradient(90deg,transparent,var(--success),transparent)}
+.stat-card.o::before{background:linear-gradient(90deg,transparent,var(--warn),transparent)}
+.stat-card.r::before{background:linear-gradient(90deg,transparent,var(--danger),transparent)}
+.stat-card .icon{width:38px;height:38px;border-radius:10px;background:color-mix(in srgb,var(--accent) 15%,transparent);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:1rem;margin-bottom:.8rem}
+.stat-card.g .icon{background:rgba(16,217,129,.15);color:var(--success)}
+.stat-card.o .icon{background:rgba(245,158,11,.15);color:var(--warn)}
+.stat-card.r .icon{background:rgba(239,68,68,.15);color:var(--danger)}
+.stat-card .val{font-family:'Orbitron';font-size:1.5rem;font-weight:900;line-height:1;margin-bottom:.3rem}
+.stat-card .lbl{font-size:.68rem;color:var(--dim);font-weight:600}
+.stat-card .delta{font-size:.62rem;font-weight:800;margin-top:.5rem;display:inline-flex;align-items:center;gap:.25rem;padding:2px 7px;border-radius:6px}
+.delta.up{background:rgba(16,217,129,.1);color:var(--success)}
+.delta.down{background:rgba(239,68,68,.1);color:var(--danger)}
+.chart-wrap{height:280px;position:relative}
+.chart-svg{width:100%;height:100%}
+.period-tabs{display:flex;gap:.2rem;background:var(--inp);padding:3px;border-radius:8px}
+.period-tabs button{background:transparent;border:none;color:var(--dim);padding:.3rem .6rem;font-size:.65rem;font-weight:700;cursor:pointer;border-radius:6px;font-family:inherit}
+.period-tabs button.on{background:var(--card-hover);color:var(--text)}
+.table-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--border);background:var(--card)}
+table{width:100%;border-collapse:collapse;font-size:.76rem;min-width:700px}
+thead{background:var(--card2)}
+thead th{padding:.8rem 1rem;text-align:left;font-weight:800;font-size:.65rem;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);white-space:nowrap}
+tbody tr{border-bottom:1px solid var(--border);transition:.1s}
+tbody tr:hover{background:var(--card-hover)}
+tbody td{padding:.8rem 1rem;vertical-align:middle}
+.bdg{display:inline-flex;align-items:center;gap:.25rem;padding:3px 8px;border-radius:6px;font-size:.6rem;font-weight:800;white-space:nowrap}
+.bdg-p{background:rgba(245,158,11,.1);color:#f59e0b;border:1px solid rgba(245,158,11,.2)}
+.bdg-s{background:rgba(16,217,129,.1);color:#10d981;border:1px solid rgba(16,217,129,.2)}
+.bdg-r{background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.2)}
+.bdg-i{background:rgba(59,130,246,.1);color:#3b82f6;border:1px solid rgba(59,130,246,.2)}
+.bdg-a{background:color-mix(in srgb,var(--accent) 15%,transparent);color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 30%,transparent)}
+.bdg-vip{background:linear-gradient(135deg,#ffd700,#b8860b);color:#000;border:none}
+.btn{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;padding:.6rem 1rem;border-radius:8px;font-weight:700;font-size:.75rem;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;justify-content:center;gap:.4rem;transition:.15s}
+.btn:hover{transform:translateY(-1px);box-shadow:0 4px 15px var(--accent-glow)}
+.btn-sm{padding:.35rem .6rem;font-size:.65rem;border-radius:6px}
+.btn-ghost{background:var(--inp);border:1px solid var(--border);color:var(--text)}
+.btn-ghost:hover{background:var(--border)}
+.btn-danger{background:linear-gradient(135deg,#ef4444,#b91c1c)}
+.btn-success{background:linear-gradient(135deg,#10d981,#059669)}
+.btn-warn{background:linear-gradient(135deg,#f59e0b,#d97706)}
+.btn-info{background:linear-gradient(135deg,#3b82f6,#2563eb)}
+.btn-block{width:100%}
+input,select,textarea{width:100%;padding:.6rem .8rem;border-radius:8px;border:1px solid var(--border);background:var(--inp);color:var(--text);font-family:inherit;outline:none;font-size:.8rem;transition:.15s}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+label{font-size:.68rem;font-weight:700;color:var(--dim);display:block;margin-bottom:.3rem}
+textarea{resize:vertical;min-height:80px}
+.switch{position:relative;width:40px;height:22px;background:var(--border);border-radius:20px;cursor:pointer;transition:.3s;flex-shrink:0}
+.switch.on{background:var(--success)}
+.switch::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;background:#fff;border-radius:50%;transition:.3s}
+.switch.on::after{left:20px}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(8px);z-index:1000;display:none;justify-content:center;align-items:center;padding:1rem;overflow-y:auto}
+.modal.on{display:flex}
+.modal-box{background:var(--card);border:1px solid var(--border2);border-radius:var(--r2);width:100%;max-width:500px;max-height:90vh;overflow-y:auto;padding:1.5rem;position:relative;animation:fadeUp .2s;box-shadow:var(--shadow)}
+.modal-box.lg{max-width:800px}
+.modal-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem;padding-bottom:.8rem;border-bottom:1px solid var(--border)}
+.modal-h h3{font-size:.95rem;color:var(--accent)}
+.modal-close{background:var(--inp);border:1px solid var(--border);color:var(--text);width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center}
+.modal-close:hover{background:var(--danger);color:#fff}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+#toasts{position:fixed;top:20px;right:20px;z-index:10000;display:flex;flex-direction:column;gap:.5rem;max-width:340px}
+.toast{background:var(--card);border:1px solid var(--border2);padding:.75rem 1rem;border-radius:10px;font-weight:600;font-size:.75rem;display:flex;gap:.6rem;align-items:center;box-shadow:var(--shadow);animation:slideIn .2s}
+.toast.ok{border-color:var(--success)}
+.toast.err{border-color:var(--danger)}
+.toast.ok i{color:var(--success)}
+.toast.err i{color:var(--danger)}
+.toast.info i{color:var(--info)}
+@keyframes slideIn{from{opacity:0;transform:translateX(50px)}to{opacity:1;transform:translateX(0)}}
+.tabs{display:flex;gap:.3rem;margin-bottom:1rem;flex-wrap:wrap}
+.tab{background:var(--inp);border:1px solid var(--border);color:var(--dim);padding:.4rem .8rem;border-radius:8px;cursor:pointer;font-size:.7rem;font-weight:700;font-family:inherit;display:inline-flex;align-items:center;gap:.3rem}
+.tab.on{background:var(--accent);color:#fff;border-color:transparent}
+.empty{text-align:center;padding:3rem 1rem;color:var(--dim)}
+.empty i{font-size:2.5rem;opacity:.2;display:block;margin-bottom:.8rem}
+.bg-preview{border-radius:12px;padding:1rem;background:linear-gradient(135deg,rgba(139,92,246,.1),rgba(236,72,153,.05));border:1px dashed var(--accent);font-size:.8rem;color:var(--text);margin-top:.5rem}
+.feed{display:flex;flex-direction:column;gap:.5rem;max-height:300px;overflow-y:auto}
+.feed-item{background:var(--inp);border-radius:8px;padding:.6rem .8rem;font-size:.72rem;border-left:2px solid var(--accent)}
+.feed-item.s{border-left-color:var(--success)}
+.feed-item.r{border-left-color:var(--danger)}
+.feed-item .t{font-size:.55rem;color:var(--dim);margin-top:.2rem}
+.login-box{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;justify-content:center;align-items:center;padding:1rem}
+.login-card{background:var(--card);border:1px solid var(--border2);border-radius:var(--r2);padding:2.5rem 2rem;max-width:400px;width:100%;text-align:center;box-shadow:var(--shadow)}
+.login-card .logo{font-size:3rem;margin-bottom:.5rem}
+.login-card h1{font-size:1.4rem;font-weight:900;color:var(--text);margin-bottom:.2rem}
+.login-card small{font-size:.6rem;color:var(--dim);letter-spacing:2px;font-weight:700;display:block;margin-bottom:1.5rem}
+.login-card input{margin-bottom:.6rem}
+.google-btn{background:#fff;color:#1f2937;border:1px solid #e5e7eb;padding:.7rem;border-radius:8px;font-weight:700;width:100%;cursor:pointer;font-family:inherit;font-size:.8rem;display:flex;align-items:center;justify-content:center;gap:.5rem;margin-top:.6rem}
+.divider{display:flex;align-items:center;gap:.6rem;margin:.9rem 0;color:var(--dim);font-size:.6rem;font-weight:700;letter-spacing:1px}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+@media(max-width:1100px){.grid-2,.grid-3{grid-template-columns:1fr}}
+@media(max-width:900px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0);box-shadow:20px 0 50px rgba(0,0,0,.5)}
+  .main-wrap{margin-left:0}
+  .main{padding:1rem}
+  .topbar{padding:.8rem 1rem}
+  .mb-toggle{display:flex!important}
+  .top-search{display:none}
+  .action-btn span.lbl{display:none}
+  .action-btn{padding:.5rem}
+}
+.mb-toggle{display:none;background:var(--card);border:1px solid var(--border);color:var(--text);width:36px;height:36px;border-radius:8px;cursor:pointer;font-size:.9rem;align-items:center;justify-content:center}
+.sidebar-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:899;display:none}
+.sidebar-backdrop.on{display:block}
+.loader{display:inline-block;width:16px;height:16px;border:2px solid color-mix(in srgb,var(--accent) 30%,transparent);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ═══════════════════════════════════════════════
+   🎵 MUSIC PLAYER — LIQUID GLASS + LYRIC SYNC
+   ═══════════════════════════════════════════════ */
+:root{
+  --mp-glass:rgba(20,22,35,.78);--mp-glass-strong:rgba(15,17,28,.92);
+  --mp-border:rgba(255,255,255,.12);--mp-border-hi:rgba(255,255,255,.22);
+  --mp-shadow:0 20px 60px rgba(0,0,0,.75),0 0 0 1px rgba(255,255,255,.05) inset;
+  --mp-accent:#8b5cf6;--mp-accent2:#ec4899;
+}
+body.light{
+  --mp-glass:rgba(255,255,255,.9);--mp-glass-strong:rgba(255,255,255,.97);
+  --mp-border:rgba(0,0,0,.08);--mp-border-hi:rgba(0,0,0,.15);
+  --mp-shadow:0 20px 60px rgba(0,0,0,.18);
+}
+.mp-fab{position:fixed;bottom:24px;right:24px;width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--mp-accent),var(--mp-accent2));color:#fff;border:none;cursor:pointer;font-size:1.4rem;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 32px rgba(139,92,246,.55),0 0 0 1px rgba(255,255,255,.15) inset;z-index:500;transition:transform .25s cubic-bezier(.34,1.56,.64,1),box-shadow .2s}
+.mp-fab:hover{transform:scale(1.1);box-shadow:0 12px 44px rgba(139,92,246,.75)}
+.mp-fab:active{transform:scale(.95)}
+.mp-fab.playing::before{content:'';position:absolute;inset:-5px;border-radius:50%;border:2px solid rgba(139,92,246,.6);animation:mpRing 1.5s ease-out infinite}
+@keyframes mpRing{0%{transform:scale(1);opacity:.8}100%{transform:scale(1.6);opacity:0}}
+.mp-fab i{position:relative;z-index:1}
+.mp-panel{position:fixed;bottom:100px;right:24px;width:360px;max-width:calc(100vw - 32px);background:var(--mp-glass);backdrop-filter:blur(36px) saturate(200%);-webkit-backdrop-filter:blur(36px) saturate(200%);border:1px solid var(--mp-border);border-radius:26px;box-shadow:var(--mp-shadow);z-index:500;padding:18px;display:none;animation:mpSlideIn .4s cubic-bezier(.16,1,.3,1);overflow:hidden}
+.mp-panel::before{content:'';position:absolute;inset:0;border-radius:inherit;background:linear-gradient(135deg,rgba(255,255,255,.12) 0%,transparent 40%,transparent 60%,rgba(255,255,255,.06) 100%);pointer-events:none}
+.mp-panel.open{display:block}
+@keyframes mpSlideIn{from{opacity:0;transform:translateY(24px) scale(.92)}to{opacity:1;transform:translateY(0) scale(1)}}
+.mp-panel-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;position:relative;z-index:1}
+.mp-panel-title{font-family:'Orbitron',sans-serif;font-size:.78rem;font-weight:900;letter-spacing:1.8px;background:linear-gradient(135deg,var(--mp-accent),var(--mp-accent2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;display:flex;align-items:center;gap:8px}
+.mp-panel-title .count{font-size:.55rem;font-weight:800;padding:2px 8px;border-radius:99px;background:rgba(139,92,246,.2);color:var(--mp-accent);-webkit-text-fill-color:var(--mp-accent);letter-spacing:.5px}
+.mp-panel-actions{display:flex;gap:4px}
+.mp-panel-actions button{width:30px;height:30px;border-radius:9px;background:rgba(255,255,255,.06);border:1px solid var(--mp-border);color:var(--text);cursor:pointer;font-size:.72rem;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.mp-panel-actions button:hover{background:rgba(255,255,255,.14);border-color:var(--mp-border-hi)}
+.mp-search-wrap{position:relative;margin-bottom:12px;z-index:1}
+.mp-search-wrap i{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:.72rem;color:var(--dim);pointer-events:none}
+.mp-search{width:100%;padding:8px 12px 8px 34px;border-radius:10px;background:rgba(255,255,255,.05);border:1px solid var(--mp-border);color:var(--text);font-size:.72rem;font-family:inherit;outline:none;transition:all .2s}
+.mp-search:focus{border-color:rgba(139,92,246,.5);background:rgba(255,255,255,.08);box-shadow:0 0 0 3px rgba(139,92,246,.15)}
+.mp-search::placeholder{color:var(--muted)}
+.mp-now{display:flex;align-items:center;gap:14px;margin-bottom:14px;position:relative;z-index:1}
+.mp-cover{width:60px;height:60px;border-radius:16px;object-fit:cover;flex-shrink:0;border:1px solid rgba(255,255,255,.12);box-shadow:0 6px 20px rgba(0,0,0,.5);background:var(--card2)}
+.mp-info{flex:1;min-width:0}
+.mp-title{font-size:.85rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text);line-height:1.2}
+.mp-artist{font-size:.7rem;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:3px}
+.mp-progress-track{height:5px;background:rgba(255,255,255,.1);border-radius:5px;overflow:hidden;cursor:pointer;margin-bottom:7px;position:relative;z-index:1}
+.mp-progress-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--mp-accent),var(--mp-accent2));border-radius:5px;transition:width .12s;box-shadow:0 0 14px rgba(139,92,246,.6)}
+.mp-times{display:flex;justify-content:space-between;font-size:.62rem;color:var(--dim);font-weight:700;font-family:'JetBrains Mono',monospace;margin-bottom:14px;position:relative;z-index:1}
+.mp-controls{display:flex;align-items:center;justify-content:center;gap:14px;position:relative;z-index:1}
+.mp-ctrl{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.06);border:1px solid var(--mp-border);color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.88rem;transition:all .15s}
+.mp-ctrl:hover{background:rgba(255,255,255,.14);border-color:var(--mp-border-hi)}
+.mp-ctrl.active{color:var(--mp-accent);background:rgba(139,92,246,.18);border-color:rgba(139,92,246,.45)}
+.mp-play-btn{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--mp-accent),var(--mp-accent2));border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.2rem;box-shadow:0 4px 24px rgba(139,92,246,.55);transition:transform .15s}
+.mp-play-btn:hover{transform:scale(1.1)}
+.mp-play-btn:active{transform:scale(.95)}
+.mp-lyrics-btn{width:100%;margin-top:14px;padding:9px;border-radius:11px;background:rgba(255,255,255,.06);border:1px solid var(--mp-border);color:var(--text);font-size:.72rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .15s;position:relative;z-index:1}
+.mp-lyrics-btn:hover{background:rgba(255,255,255,.14);border-color:var(--mp-border-hi)}
+.mp-full-modal{position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);z-index:1000;display:none;align-items:center;justify-content:center;padding:16px}
+.mp-full-modal.open{display:flex}
+.mp-full-box{width:100%;max-width:500px;max-height:92vh;background:var(--mp-glass-strong);backdrop-filter:blur(36px) saturate(200%);-webkit-backdrop-filter:blur(36px) saturate(200%);border:1px solid var(--mp-border);border-radius:30px;box-shadow:var(--mp-shadow);overflow:hidden;display:flex;flex-direction:column;animation:mpFullIn .4s cubic-bezier(.16,1,.3,1);position:relative}
+@keyframes mpFullIn{from{opacity:0;transform:scale(.9) translateY(24px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.mp-full-mesh{position:absolute;inset:0;opacity:.65;z-index:0;background:radial-gradient(ellipse at 20% 10%,#8b5cf6 0%,transparent 50%),radial-gradient(ellipse at 80% 20%,#ec4899 0%,transparent 50%),radial-gradient(ellipse at 50% 90%,#3b82f6 0%,transparent 60%);transition:background .8s ease;filter:blur(50px)}
+.mp-full-inner{position:relative;z-index:1;padding:22px;display:flex;flex-direction:column;overflow-y:auto;min-height:0}
+.mp-full-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.mp-full-header button{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid var(--mp-border);color:var(--text);cursor:pointer;font-size:.9rem;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.mp-full-header button:hover{background:rgba(255,255,255,.16)}
+.mp-full-quality{font-size:.62rem;font-weight:800;letter-spacing:1px;padding:5px 12px;border-radius:99px;background:rgba(255,255,255,.08);border:1px solid var(--mp-border);color:var(--dim)}
+.mp-full-cover-wrapper{width:100%;max-width:270px;aspect-ratio:1;margin:0 auto 20px;border-radius:26px;overflow:hidden;box-shadow:0 24px 70px rgba(0,0,0,.65);position:relative}
+.mp-full-cover{width:100%;height:100%;object-fit:cover;transition:transform .6s cubic-bezier(.16,1,.3,1)}
+.mp-full-cover-wrapper.playing .mp-full-cover{animation:mpCoverPulse 4s ease-in-out infinite}
+@keyframes mpCoverPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+.mp-full-song-info{text-align:center;margin-bottom:18px}
+.mp-full-title{font-size:1.25rem;font-weight:800;color:var(--text);letter-spacing:-.3px;line-height:1.2}
+.mp-full-artist{font-size:.88rem;color:var(--dim);margin-top:5px}
+.mp-tabs{display:flex;gap:4px;padding:5px;background:rgba(255,255,255,.05);border:1px solid var(--mp-border);border-radius:14px;margin-bottom:16px}
+.mp-tab{flex:1;padding:9px;border-radius:9px;background:transparent;border:none;color:var(--dim);font-size:.72rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s}
+.mp-tab.on{background:linear-gradient(135deg,var(--mp-accent),var(--mp-accent2));color:#fff;box-shadow:0 4px 14px rgba(139,92,246,.45)}
+.mp-tab-content{display:none}
+.mp-tab-content.on{display:block}
+.mp-lyrics-scroll{max-height:240px;overflow-y:auto;padding:14px;background:rgba(255,255,255,.03);border:1px solid var(--mp-border);border-radius:16px;text-align:center;position:relative}
+.mp-lyrics-scroll::-webkit-scrollbar{width:6px}
+.mp-lyrics-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:6px}
+
+/* ═══ LYRIC SYNC — APPLE MOTION STYLE ═══ */
+.mp-lyrics-line{
+  font-size:.82rem;
+  line-height:2.2;
+  color:var(--dim);
+  transition:all .5s cubic-bezier(.34,1.56,.64,1),opacity .4s,filter .4s;
+  padding:4px 10px;
+  border-radius:10px;
+  will-change:transform,opacity,filter;
+  cursor:default;
+  transform:scale(.88);
+  opacity:.5;
+  filter:blur(2.5px);
+}
+.mp-lyrics-line[data-t]{
+  cursor:pointer;
+}
+.mp-lyrics-line[data-t]:hover{
+  opacity:.8;
+  filter:blur(1px);
+}
+.mp-lyrics-line.prev{
+  transform:scale(.94);
+  opacity:.55;
+  filter:blur(1.2px);
+}
+.mp-lyrics-line.active{
+  transform:scale(1.15) translateY(-4px);
+  opacity:1;
+  filter:blur(0);
+  font-weight:800;
+  font-size:.88rem;
+  padding:8px 14px;
+  background:linear-gradient(135deg,rgba(139,92,246,.22),rgba(236,72,153,.15));
+  border:1px solid rgba(139,92,246,.45);
+  box-shadow:0 4px 20px rgba(139,92,246,.35),0 0 30px rgba(236,72,153,.15);
+  background-clip:padding-box;
+  color:var(--text);
+  animation:lyricGlowPulse 2.4s ease-in-out infinite;
+}
+@keyframes lyricGlowPulse{
+  0%,100%{
+    box-shadow:0 4px 20px rgba(139,92,246,.35),0 0 30px rgba(236,72,153,.15);
+    border-color:rgba(139,92,246,.45);
+  }
+  50%{
+    box-shadow:0 6px 28px rgba(139,92,246,.55),0 0 50px rgba(236,72,153,.28);
+    border-color:rgba(139,92,246,.7);
+  }
+}
+.mp-lyrics-line.active::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  border-radius:10px;
+  background:linear-gradient(135deg,rgba(255,255,255,.08),transparent 50%);
+  pointer-events:none;
+}
+.mp-lyrics-empty{text-align:center;padding:36px 16px;color:var(--dim);font-size:.78rem}
+.mp-lyrics-empty i{font-size:2.2rem;display:block;margin-bottom:10px;opacity:.3}
+.mp-lyrics-header-bar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:12px;
+  gap:8px;
+}
+.mp-sync-toggle{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:6px 12px;
+  border-radius:99px;
+  background:rgba(255,255,255,.06);
+  border:1px solid var(--mp-border);
+  color:var(--dim);
+  font-size:.65rem;
+  font-weight:800;
+  cursor:pointer;
+  transition:all .2s;
+  font-family:inherit;
+  letter-spacing:.5px;
+}
+.mp-sync-toggle.on{
+  background:linear-gradient(135deg,var(--mp-accent),var(--mp-accent2));
+  color:#fff;
+  border-color:transparent;
+  box-shadow:0 4px 12px rgba(139,92,246,.45);
+}
+.mp-sync-toggle:disabled{
+  opacity:.35;
+  cursor:not-allowed;
+}
+.mp-sync-toggle i{font-size:.7rem}
+.mp-sync-toggle.on i{
+  animation:syncPulse 1.5s ease-in-out infinite;
+}
+@keyframes syncPulse{
+  0%,100%{transform:scale(1)}
+  50%{transform:scale(1.2)}
+}
+.mp-line-badge{
+  font-size:.55rem;
+  font-weight:800;
+  padding:2px 7px;
+  border-radius:6px;
+  background:rgba(139,92,246,.2);
+  color:var(--mp-accent);
+  letter-spacing:.5px;
+}
+
+.mp-queue-list{max-height:280px;overflow-y:auto}
+.mp-queue-item{display:flex;align-items:center;gap:12px;padding:9px;border-radius:12px;cursor:pointer;transition:all .15s;margin-bottom:5px;border:1px solid transparent}
+.mp-queue-item:hover{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.06)}
+.mp-queue-item.active{background:rgba(139,92,246,.15);border-color:rgba(139,92,246,.35);box-shadow:0 0 20px rgba(139,92,246,.15)}
+.mp-queue-item img{width:44px;height:44px;border-radius:10px;object-fit:cover;flex-shrink:0;border:1px solid rgba(255,255,255,.06)}
+.mp-queue-num{width:26px;text-align:center;font-size:.68rem;font-weight:700;color:var(--dim);font-family:'JetBrains Mono',monospace;flex-shrink:0}
+.mp-queue-info{flex:1;min-width:0}
+.mp-queue-title{font-size:.78rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mp-queue-artist{font-size:.68rem;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.mp-playlist-scroll{max-height:280px;overflow-y:auto}
+.mp-empty-search{text-align:center;padding:28px 16px;color:var(--dim);font-size:.75rem}
+@media (max-width:600px){
+  .mp-fab{bottom:20px;right:20px;width:56px;height:56px;font-size:1.2rem}
+  .mp-panel{right:12px;left:12px;width:auto;bottom:88px}
+  .mp-full-box{max-width:100%;border-radius:26px}
+  .mp-full-cover-wrapper{max-width:230px}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginBox" class="login-box">
+  <div class="login-card">
+    <div class="logo">👑</div>
+    <h1>OWNER PANEL</h1>
+    <small>OWLNAR ADMIN v2.6</small>
+    <input type="email" id="loginEmail" placeholder="Email Owner">
+    <input type="password" id="loginPass" placeholder="Password">
+    <button class="btn btn-block" onclick="doLogin(event)" id="btnLogin"><i class="fas fa-sign-in-alt"></i> Masuk</button>
+    <div class="divider">ATAU</div>
+    <button class="google-btn" onclick="doGoogle(event)" id="btnGoogle">
+      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width:18px" alt=""> Login Google
+    </button>
+    <p style="font-size:.65rem;color:var(--dim);margin-top:1rem">🔒 Hanya akun owner.</p>
+  </div>
+</div>
+
+<!-- SHELL -->
+<div class="shell hide" id="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-brand">
+      <div class="logo">🦉</div>
+      <div><h1>OWLNAR</h1><small>OWNER v2.6</small></div>
+    </div>
+
+    <div class="nav-group">OVERVIEW</div>
+    <button class="nav-item on" data-page="dashboard" onclick="goPage('dashboard',this)"><i class="fas fa-chart-line"></i> Dashboard <span class="badge hide" id="navBadgePending">0</span></button>
+    <button class="nav-item" data-page="analytics" onclick="goPage('analytics',this)"><i class="fas fa-chart-pie"></i> Analytics</button>
+
+    <div class="nav-group">MANAJEMEN</div>
+    <button class="nav-item" data-page="transactions" onclick="goPage('transactions',this)"><i class="fas fa-receipt"></i> Transaksi</button>
+    <button class="nav-item" data-page="claims" onclick="goPage('claims',this)"><i class="fas fa-hand-holding-usd"></i> Klaim <span class="badge hide" id="navBadgeClaim">0</span></button>
+    <button class="nav-item" data-page="products" onclick="goPage('products',this)"><i class="fas fa-boxes"></i> Produk</button>
+    <button class="nav-item" data-page="users" onclick="goPage('users',this)"><i class="fas fa-users"></i> User</button>
+    <button class="nav-item" data-page="banned" onclick="goPage('banned',this)"><i class="fas fa-ban"></i> Banned List</button>
+    <button class="nav-item" data-page="reviews" onclick="goPage('reviews',this)"><i class="fas fa-star"></i> Reviews</button>
+
+    <div class="nav-group">MARKETING</div>
+    <button class="nav-item" data-page="flashsale" onclick="goPage('flashsale',this)"><i class="fas fa-bolt"></i> Flash Sale</button>
+    <button class="nav-item" data-page="coupons" onclick="goPage('coupons',this)"><i class="fas fa-tag"></i> Kupon</button>
+    <button class="nav-item" data-page="banner" onclick="goPage('banner',this)"><i class="fas fa-bullhorn"></i> Banner</button>
+    <button class="nav-item" data-page="referral" onclick="goPage('referral',this)"><i class="fas fa-user-plus"></i> Referral</button>
+
+    <div class="nav-group">TOOLS</div>
+    <button class="nav-item" data-page="broadcast" onclick="goPage('broadcast',this)"><i class="fas fa-paper-plane"></i> Broadcast</button>
+    <button class="nav-item" data-page="massbalance" onclick="goPage('massbalance',this)"><i class="fas fa-coins"></i> Mass Balance</button>
+    <button class="nav-item" data-page="auditlog" onclick="goPage('auditlog',this)"><i class="fas fa-history"></i> Audit Logs</button>
+    <button class="nav-item" data-page="export" onclick="goPage('export',this)"><i class="fas fa-file-export"></i> Backup & Export</button>
+    <button class="nav-item" data-page="settings" onclick="goPage('settings',this)"><i class="fas fa-cog"></i> Settings</button>
+
+    <div style="margin-top:auto;padding-top:1rem;border-top:1px solid var(--border)">
+      <button class="nav-item" onclick="doLogout()"><i class="fas fa-sign-out-alt"></i> Keluar</button>
+    </div>
+  </aside>
+  <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar()"></div>
+
+  <div class="main-wrap">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="mb-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+        <div class="page-title">
+          <h2 id="pageTitle">Dashboard</h2>
+          <p id="pageSubtitle">Overview & statistik</p>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="top-search">
+          <i class="fas fa-search"></i>
+          <input type="text" id="globalSearch" placeholder="Cari transaksi, user..." oninput="handleGlobalSearch(this.value)">
+          <span class="kbd">⌘K</span>
+        </div>
+        <div class="action-bar" id="actionBar"></div>
+        <span class="live hide" id="liveIndicator">LIVE</span>
+        <button class="icon-btn" onclick="toggleTheme()" title="Tema"><i class="fas fa-moon" id="themeIcon"></i></button>
+        <button class="icon-btn" onclick="goPage('claims')" title="Notifikasi"><i class="fas fa-bell"></i><span class="dot hide" id="notifDot"></span></button>
+        <div class="user-pill" onclick="goPage('settings')">
+          <div class="av" id="userAvatar">R</div>
+          <div><b id="userName">Owner</b><small id="userRole">OWNER</small></div>
+        </div>
+      </div>
+    </div>
+
+    <main class="main">
+      <!-- DASHBOARD -->
+      <div id="page-dashboard">
+        <div class="stat-grid">
+          <div class="stat-card"><div class="icon"><i class="fas fa-shopping-bag"></i></div><div class="val" id="statOrders">0</div><div class="lbl">Total Order</div><div class="delta up" id="statOrdersDelta"><i class="fas fa-arrow-up"></i> 0%</div></div>
+          <div class="stat-card g"><div class="icon"><i class="fas fa-money-bill-wave"></i></div><div class="val" id="statIncome">Rp 0</div><div class="lbl">Total Income</div><div class="delta up" id="statIncomeDelta"><i class="fas fa-arrow-up"></i> 0%</div></div>
+          <div class="stat-card o"><div class="icon"><i class="fas fa-percentage"></i></div><div class="val" id="statConv">0%</div><div class="lbl">Conversion Rate</div></div>
+          <div class="stat-card"><div class="icon"><i class="fas fa-shopping-cart"></i></div><div class="val" id="statAOV">Rp 0</div><div class="lbl">Avg Order Value</div></div>
+          <div class="stat-card r"><div class="icon"><i class="fas fa-clock"></i></div><div class="val" id="statPending">0</div><div class="lbl">Pending</div></div>
+          <div class="stat-card"><div class="icon"><i class="fas fa-users"></i></div><div class="val" id="statUsers">0</div><div class="lbl">Total User</div></div>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-h"><div><h3><i class="fas fa-chart-area"></i> Grafik Penjualan</h3><p>Revenue & orders</p></div>
+              <div class="period-tabs"><button class="on" onclick="setChartPeriod('7d',this)">7H</button><button onclick="setChartPeriod('30d',this)">30H</button><button onclick="setChartPeriod('90d',this)">90H</button></div>
+            </div>
+            <div class="chart-wrap"><svg class="chart-svg" id="salesChart" viewBox="0 0 600 280" preserveAspectRatio="none"></svg></div>
+          </div>
+          <div class="card">
+            <div class="card-h"><div><h3><i class="fas fa-chart-pie"></i> Top Kategori</h3><p>Berdasarkan penjualan</p></div></div>
+            <div id="categoryChart" style="padding:.5rem 0"></div>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-h"><div><h3><i class="fas fa-stream"></i> Aktivitas Terbaru</h3></div><span class="live">LIVE</span></div>
+            <div class="feed" id="activityFeed"></div>
+          </div>
+          <div class="card">
+            <div class="card-h"><div><h3><i class="fas fa-bolt"></i> Quick Actions</h3></div></div>
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:.5rem">
+              <button class="btn btn-ghost" onclick="goPage('products');setTimeout(()=>openProductForm(),300)"><i class="fas fa-plus"></i> Produk</button>
+              <button class="btn btn-ghost" onclick="goPage('claims')"><i class="fas fa-hand-holding-usd"></i> Klaim</button>
+              <button class="btn btn-ghost" onclick="goPage('broadcast')"><i class="fas fa-paper-plane"></i> Broadcast</button>
+              <button class="btn btn-ghost" onclick="goPage('export')"><i class="fas fa-download"></i> Backup</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ANALYTICS -->
+      <div id="page-analytics" class="hide">
+        <div class="grid-2">
+          <div class="card"><div class="card-h"><div><h3><i class="fas fa-chart-bar"></i> Revenue Bulanan</h3></div></div><div class="chart-wrap" style="height:260px"><svg class="chart-svg" id="monthlyChart" viewBox="0 0 600 260" preserveAspectRatio="none"></svg></div></div>
+          <div class="card"><div class="card-h"><div><h3><i class="fas fa-fire"></i> Produk Terlaris</h3></div></div><div id="topProducts" style="max-height:300px;overflow-y:auto"></div></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><div><h3><i class="fas fa-crown"></i> Top Spender</h3></div></div>
+          <div class="table-wrap"><table><thead><tr><th>Rank</th><th>Username</th><th>Order</th><th>Total Belanja</th><th>Last Active</th></tr></thead><tbody id="topUsersTable"></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- TRANSACTIONS -->
+      <div id="page-transactions" class="hide">
+        <div class="card">
+          <div class="card-h"><div><h3><i class="fas fa-receipt"></i> Manajemen Transaksi</h3></div></div>
+          <div style="display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap">
+            <input type="text" id="txSearch" placeholder="Cari order ID / username..." oninput="renderTransactions()" style="flex:1;min-width:200px">
+            <select id="txFilter" onchange="renderTransactions()" style="width:auto"><option value="all">Semua Status</option><option value="pending">Pending</option><option value="success">Sukses</option><option value="rejected">Ditolak</option></select>
+          </div>
+          <div class="table-wrap"><table><thead><tr><th>Order ID</th><th>User</th><th>Produk</th><th>Harga</th><th>Status</th><th>Waktu</th><th style="text-align:right">Action</th></tr></thead><tbody id="txTable"></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- CLAIMS -->
+      <div id="page-claims" class="hide">
+        <div class="tabs">
+          <button class="tab on" onclick="setClaimFilter('pending',this)">Pending</button>
+          <button class="tab" onclick="setClaimFilter('link_ready',this)">Link Ready</button>
+          <button class="tab" onclick="setClaimFilter('selected',this)">Menunggu ACC</button>
+          <button class="tab" onclick="setClaimFilter('success',this)">Sukses</button>
+          <button class="tab" onclick="setClaimFilter('all',this)">Semua</button>
+        </div>
+        <div class="card"><div id="claimsList"></div></div>
+      </div>
+
+      <!-- PRODUCTS -->
+      <div id="page-products" class="hide">
+        <div class="card">
+          <div class="card-h"><div><h3><i class="fas fa-boxes"></i> Manajemen Produk</h3></div></div>
+          <div style="display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap">
+            <input type="text" id="prodSearch" placeholder="Cari produk..." oninput="renderProductsTable()" style="flex:1;min-width:200px">
+            <select id="prodCatFilter" onchange="renderProductsTable()" style="width:auto"><option value="all">Semua Kategori</option></select>
+          </div>
+          <div class="table-wrap"><table><thead><tr><th>Produk</th><th>Kategori</th><th>Harga</th><th>Flash Sale</th><th>Featured</th><th>Terjual</th><th style="text-align:right">Action</th></tr></thead><tbody id="productsTable"></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- USERS -->
+      <div id="page-users" class="hide">
+        <div class="card">
+          <div class="card-h"><div><h3><i class="fas fa-users"></i> Manajemen User</h3></div></div>
+          <div style="margin-bottom:1rem"><input type="text" id="userSearch" placeholder="Cari username / email..." oninput="renderUsersTable()"></div>
+          <div class="table-wrap"><table><thead><tr><th>User</th><th>Email</th><th>Saldo</th><th>Status</th><th>Order</th><th style="text-align:right">Action</th></tr></thead><tbody id="usersTable"></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- BANNED -->
+      <div id="page-banned" class="hide">
+        <div class="card"><div class="card-h"><div><h3><i class="fas fa-ban"></i> Daftar Banned</h3></div><span class="bdg bdg-r" id="bannedCount">0</span></div><div id="bannedList"></div></div>
+      </div>
+
+      <!-- REVIEWS -->
+      <div id="page-reviews" class="hide">
+        <div class="card"><div class="card-h"><div><h3><i class="fas fa-star"></i> Moderasi Ulasan</h3></div></div><div id="reviewsList"><div class="empty"><i class="fas fa-star"></i>Belum ada ulasan</div></div></div>
+      </div>
+
+      <!-- FLASH SALE -->
+      <div id="page-flashsale" class="hide">
+        <div class="card"><div class="card-h"><div><h3><i class="fas fa-bolt"></i> Flash Sale Manager</h3></div></div><div id="flashSaleList"></div></div>
+      </div>
+
+      <!-- COUPONS -->
+      <div id="page-coupons" class="hide">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-h"><div><h3><i class="fas fa-plus"></i> Buat Kupon</h3></div></div>
+            <label>Kode Kupon</label>
+            <div style="display:flex;gap:.5rem;margin-bottom:.5rem">
+              <input type="text" id="cpCode" placeholder="DISKON10" style="text-transform:uppercase">
+              <button class="btn btn-ghost" onclick="document.getElementById('cpCode').value='OWL'+Math.random().toString(36).slice(2,7).toUpperCase()"><i class="fas fa-dice"></i></button>
+            </div>
+            <label>Diskon (%)</label><input type="number" id="cpDisc" placeholder="10" min="1" max="100" style="margin-bottom:.5rem">
+            <label>Berlaku Sampai</label><input type="date" id="cpExp" style="margin-bottom:.8rem">
+            <button class="btn btn-success btn-block" onclick="saveCoupon()"><i class="fas fa-save"></i> Simpan</button>
+          </div>
+          <div class="card"><div class="card-h"><div><h3><i class="fas fa-tag"></i> Daftar Kupon</h3></div></div><div id="couponsList"></div></div>
+        </div>
+      </div>
+
+      <!-- BANNER -->
+      <div id="page-banner" class="hide">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-h"><div><h3><i class="fas fa-edit"></i> Editor Banner</h3></div></div>
+            <label>Isi Banner</label>
+            <textarea id="bannerText" placeholder="Contoh: 🔥 Flash Sale Hari Ini!" style="margin-bottom:1rem;min-height:120px"></textarea>
+            <div style="display:flex;gap:.5rem">
+              <button class="btn btn-success" style="flex:1" onclick="saveBanner()"><i class="fas fa-check"></i> Publish</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteBanner()"><i class="fas fa-trash"></i> Hapus</button>
+            </div>
+          </div>
+          <div class="card"><div class="card-h"><div><h3><i class="fas fa-eye"></i> Live Preview</h3></div></div><div style="background:var(--bg2);padding:1rem;border-radius:12px;border:1px solid var(--border);min-height:200px"><div id="bannerPreview" class="bg-preview"><i class="fas fa-info-circle" style="color:var(--dim)"></i> Ketik sesuatu...</div></div></div>
+        </div>
+      </div>
+
+      <!-- REFERRAL -->
+      <div id="page-referral" class="hide">
+        <div class="card"><div class="card-h"><div><h3><i class="fas fa-user-plus"></i> Referral Tracker</h3></div></div><div class="table-wrap"><table><thead><tr><th>User</th><th>Total Diundang</th><th>Bonus</th><th>Status</th></tr></thead><tbody id="referralTable"><tr><td colspan="4" style="text-align:center;padding:2rem;color:var(--dim)">Belum ada data</td></tr></tbody></table></div></div>
+      </div>
+
+      <!-- BROADCAST -->
+      <div id="page-broadcast" class="hide">
+        <div class="card">
+          <div class="card-h"><div><h3><i class="fas fa-paper-plane"></i> Broadcast</h3></div></div>
+          <label>Judul</label><input type="text" id="bcTitle" placeholder="Judul" style="margin-bottom:.5rem">
+          <label>Pesan</label><textarea id="bcMessage" placeholder="Isi pesan..." style="margin-bottom:.5rem"></textarea>
+          <label>Target</label><select id="bcTarget" style="margin-bottom:.8rem"><option value="all">Semua</option><option value="buyers">Pembeli</option><option value="nonbuyers">Belum Beli</option></select>
+          <button class="btn btn-block" onclick="sendBroadcast(event)"><i class="fas fa-paper-plane"></i> Kirim</button>
+          <div id="bcHistory" style="margin-top:1rem"></div>
+        </div>
+      </div>
+
+      <!-- MASS BALANCE -->
+      <div id="page-massbalance" class="hide">
+        <div class="card">
+          <div class="card-h"><div><h3><i class="fas fa-coins"></i> Mass Balance</h3></div></div>
+          <div class="grid-2">
+            <div>
+              <label>Jumlah (Rp)</label><input type="number" id="mbAmount" placeholder="5000" style="margin-bottom:.5rem">
+              <label>Catatan</label><input type="text" id="mbNote" placeholder="Bonus" style="margin-bottom:.5rem">
+              <label>Target</label><select id="mbTarget" style="margin-bottom:.8rem"><option value="all">Semua</option><option value="banned">Banned</option><option value="buyers">Pembeli</option></select>
+              <button class="btn btn-warn btn-block" onclick="massAddBalance(event)"><i class="fas fa-paper-plane"></i> Kirim</button>
+            </div>
+            <div><div style="background:rgba(245,158,11,.1);border:1px dashed var(--warn);border-radius:12px;padding:1rem;font-size:.75rem;line-height:1.8"><b style="color:var(--warn)">⚠️ Hati-hati:</b><br>• Tidak bisa dibatalkan<br>• Total = user × nominal</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AUDIT LOGS -->
+      <div id="page-auditlog" class="hide">
+        <div class="card"><div class="card-h"><div><h3><i class="fas fa-history"></i> Audit Logs</h3></div></div><div class="table-wrap"><table><thead><tr><th>Waktu</th><th>Aksi</th><th>Oleh</th><th>Detail</th></tr></thead><tbody id="auditLogTable"><tr><td colspan="4" style="text-align:center;padding:2rem;color:var(--dim)">Belum ada log</td></tr></tbody></table></div></div>
+      </div>
+
+      <!-- EXPORT -->
+      <div id="page-export" class="hide">
+        <div class="grid-3">
+          <div class="card" style="text-align:center"><h3 style="font-size:.9rem;margin-bottom:.4rem">Transaksi</h3><div style="display:flex;gap:.3rem"><button class="btn btn-sm" onclick="exportData('transactions','csv')" style="flex:1">CSV</button><button class="btn btn-sm btn-ghost" onclick="exportData('transactions','json')" style="flex:1">JSON</button></div></div>
+          <div class="card" style="text-align:center"><h3 style="font-size:.9rem;margin-bottom:.4rem">Users</h3><div style="display:flex;gap:.3rem"><button class="btn btn-sm btn-success" onclick="exportData('users','csv')" style="flex:1">CSV</button><button class="btn btn-sm btn-ghost" onclick="exportData('users','json')" style="flex:1">JSON</button></div></div>
+          <div class="card" style="text-align:center"><h3 style="font-size:.9rem;margin-bottom:.4rem">Claims</h3><div style="display:flex;gap:.3rem"><button class="btn btn-sm" onclick="exportData('claims','csv')" style="flex:1">CSV</button><button class="btn btn-sm btn-ghost" onclick="exportData('claims','json')" style="flex:1">JSON</button></div></div>
+        </div>
+        <div class="card" style="margin-top:1rem"><button class="btn" onclick="fullBackup()"><i class="fas fa-download"></i> Full Backup</button></div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div id="page-settings" class="hide">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-h"><div><h3><i class="fas fa-cog"></i> Konfigurasi</h3></div></div>
+            <label>WhatsApp</label><input type="text" id="cfgWA" placeholder="628xxx" style="margin-bottom:.5rem">
+            <label>Bonus Referral</label><input type="number" id="cfgRefBonus" placeholder="5000" style="margin-bottom:.5rem">
+            <label>Nama Toko</label><input type="text" id="cfgStoreName" placeholder="Owlnar" style="margin-bottom:.5rem">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border)"><div><b style="font-size:.8rem">Maintenance</b></div><div class="switch" id="swMaintenance" onclick="toggleMaintenance()"></div></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:1rem"><div><b style="font-size:.8rem">DANA</b></div><div class="switch on" id="swDana" onclick="this.classList.toggle('on')"></div></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:1rem"><div><b style="font-size:.8rem">QRIS</b></div><div class="switch on" id="swQris" onclick="this.classList.toggle('on')"></div></div>
+            <button class="btn btn-success btn-block" style="margin-top:1.5rem" onclick="saveConfig()"><i class="fas fa-save"></i> Simpan</button>
+          </div>
+          <div class="card">
+            <div class="card-h"><div><h3><i class="fas fa-palette"></i> Tampilan</h3></div></div>
+            <label>Warna Aksen</label>
+            <div style="display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap">
+              <div style="width:30px;height:30px;border-radius:50%;background:#8b5cf6;cursor:pointer" onclick="document.documentElement.style.setProperty('--accent','#8b5cf6')"></div>
+              <div style="width:30px;height:30px;border-radius:50%;background:#3b82f6;cursor:pointer" onclick="document.documentElement.style.setProperty('--accent','#3b82f6')"></div>
+              <div style="width:30px;height:30px;border-radius:50%;background:#10d981;cursor:pointer" onclick="document.documentElement.style.setProperty('--accent','#10d981')"></div>
+              <div style="width:30px;height:30px;border-radius:50%;background:#ef4444;cursor:pointer" onclick="document.documentElement.style.setProperty('--accent','#ef4444')"></div>
+              <div style="width:30px;height:30px;border-radius:50%;background:#f59e0b;cursor:pointer" onclick="document.documentElement.style.setProperty('--accent','#f59e0b')"></div>
+            </div>
+            <div style="background:var(--inp);border-radius:12px;padding:1rem;font-size:.75rem;line-height:1.9;margin-top:1rem"><b>Email:</b> <span id="infoEmail">-</span><br><b>UID:</b> <span id="infoUid" style="font-family:'JetBrains Mono',monospace;font-size:.65rem;word-break:break-all">-</span></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal" id="modalProduct"><div class="modal-box lg">
+  <div class="modal-h"><h3 id="prodFormTitle"><i class="fas fa-box"></i> Tambah Produk</h3><button class="modal-close" onclick="closeModal('modalProduct')"><i class="fas fa-times"></i></button></div>
+  <div class="grid-2">
+    <div>
+      <label>Nama Produk</label><input type="text" id="prodName" style="margin-bottom:.5rem">
+      <label>Kategori</label><input type="text" id="prodCat" list="catList" style="margin-bottom:.5rem">
+      <label>Harga</label><input type="text" id="prodPrice" placeholder="5K" style="margin-bottom:.5rem">
+      <label>Harga Lama</label><input type="text" id="prodOldPrice" style="margin-bottom:.5rem">
+    </div>
+    <div>
+      <label>Link Download</label><input type="text" id="prodLink" style="margin-bottom:.5rem">
+      <label>Deskripsi</label><textarea id="prodDesc" style="margin-bottom:.5rem"></textarea>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem"><span style="font-size:.75rem;font-weight:700">Flash Sale</span><div class="switch" id="swFlash" onclick="this.classList.toggle('on')"></div></div>
+      <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:.75rem;font-weight:700">Featured</span><div class="switch" id="swFeatured" onclick="this.classList.toggle('on')"></div></div>
+    </div>
+  </div>
+  <div style="display:flex;gap:.5rem;margin-top:1.5rem">
+    <button class="btn btn-success" style="flex:1" onclick="saveProduct(event)"><i class="fas fa-save"></i> Simpan</button>
+    <button class="btn btn-ghost" onclick="closeModal('modalProduct')">Batal</button>
+  </div>
+</div></div>
+
+<div class="modal" id="modalTx"><div class="modal-box"><div class="modal-h"><h3><i class="fas fa-receipt"></i> Detail</h3><button class="modal-close" onclick="closeModal('modalTx')"><i class="fas fa-times"></i></button></div><div id="txDetailBody"></div></div></div>
+
+<div class="modal" id="modalUser"><div class="modal-box lg"><div class="modal-h"><h3><i class="fas fa-user"></i> Detail User</h3><button class="modal-close" onclick="closeModal('modalUser')"><i class="fas fa-times"></i></button></div><div id="userDetailBody"></div></div></div>
+
+<div class="modal" id="modalBan"><div class="modal-box">
+  <div class="modal-h"><h3><i class="fas fa-ban"></i> Ban</h3><button class="modal-close" onclick="closeModal('modalBan')"><i class="fas fa-times"></i></button></div>
+  <input type="hidden" id="banUid">
+  <label>Username</label><input type="text" id="banUsername" readonly style="margin-bottom:.5rem">
+  <label>Alasan</label><input type="text" id="banReason" value="Bukti palsu" style="margin-bottom:.5rem">
+  <label>Metode</label><select id="banMethod" style="margin-bottom:1rem"><option value="suspend1">Suspend 1 jam</option><option value="suspend24">Suspend 24 jam</option><option value="permanent">Permanent</option></select>
+  <div id="banWarning" style="background:rgba(239,68,68,.1);border:1px solid var(--danger);border-radius:8px;padding:.7rem;font-size:.7rem;margin-bottom:1rem;display:none"><b style="color:var(--danger)">⚠️ Sudah pernah di-ban!</b></div>
+  <div style="display:flex;gap:.5rem"><button class="btn btn-danger" style="flex:1" onclick="confirmBan()"><i class="fas fa-ban"></i> Ban</button><button class="btn btn-ghost" onclick="closeModal('modalBan')">Batal</button></div>
+</div></div>
+
+<div class="modal" id="modalClaimLink"><div class="modal-box lg"><div class="modal-h"><h3><i class="fas fa-link"></i> Kelola Link</h3><button class="modal-close" onclick="closeModal('modalClaimLink')"><i class="fas fa-times"></i></button></div><input type="hidden" id="claimLinkId"><div id="claimLinkBody"></div></div></div>
+
+<div class="modal" id="modalConfirm"><div class="modal-box" style="max-width:400px">
+  <div class="modal-h"><h3><i class="fas fa-question-circle"></i> Konfirmasi</h3></div>
+  <p id="confirmMsg" style="font-size:.85rem;margin-bottom:1.5rem;line-height:1.6"></p>
+  <div style="display:flex;gap:.5rem"><button class="btn btn-danger" style="flex:1" id="confirmYes">Ya</button><button class="btn btn-ghost" style="flex:1" onclick="closeModal('modalConfirm')">Batal</button></div>
+</div></div>
+
+
+<div id="toasts"></div>
+
+<script src="owlnar-player.js"></script>
+<script src="owner.js"></script>
+</body>
+</html>
